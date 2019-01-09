@@ -48,6 +48,15 @@ object List { // `List` companion object. Contains functions for creating and wo
   /*
     Exercise 3.8:
       foldRight(List(1, 2, 3), Nil:List[Int])(Cons(_, _))
+      returns (we set f = Cons(_, _) for this)
+        Cons(1, foldRight(List(2, 3), Nil)(f)),
+        Cons(1, Cons(2, foldRight(List(3), Nil)(f)))
+        Cons(1, Cons(2, Cons(3, foldRight(Nil, Nil)(f))))
+        Cons(1, Cons(2, Cons(3, Nil)))
+
+      Therefore, foldRight(L, Nil)(Cons(_, _)) returns L.
+      This implies that the constructor for List is essentially just a foldRight
+      function.
    */
 
   def sum2(ns: List[Int]) =
@@ -97,11 +106,76 @@ object List { // `List` companion object. Contains functions for creating and wo
       case Cons(x, Cons(y, t)) => init(Cons(y, t))
     }
 
+  // Exercise 3.9:
+  def length[A](l: List[A]): Int =
+    foldRight(l, 0)((x, y) => 1 + y)
+
+  // Exercise 3.10:
+  @annotation.tailrec
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = {
+    l match {
+      case Nil => z
+      case Cons(h, t) => foldLeft(t, f(z, h))(f)
+    }
+  }
+
+  // Exercise 3.11.a:
+  def sum3(as: List[Int]): Int =
+    foldLeft(as, 0)(_ + _)
+
+  // Exercise 3.11.b:
+  def product3(as: List[Int]): Int =
+    foldLeft(as, 1)(_ * _)
+
+  // Exercise 3.11.c
+  def length2[A](as: List[A]): Int =
+    foldLeft(as, 0)((x, y) => 1 + x)
+
+  // Exercise 3.12:
+  def reverse[A](as: List[A]): List[A] =
+    foldLeft(as, Nil:List[A])((x, y) => Cons(y, x))
+
   /*
-  def length[A](l: List[A]): Int = ???
+    Let's just see how reverse plays out on an example.
+    reverse(List(1, 2, 3)) returns: (with f as the function in reverse)
+      foldLeft(List(1, 2, 3), Nil)(f)
+      foldLeft(List(2, 3), Cons(1, Nil))
+      foldLeft(List(3), Cons(2, Cons(1, Nil)))
+      foldLeft(Nil, Cons(3, Cons(2, Cons(1, Nil))))
+      Cons(3, Cons(2, Cons(1, Nil))) == List(3, 2, 1)
+   */
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  // Exercise 3.13.a:
+  /*
+    Hint:
+      It's possible to do both directions. For your `foldLeft` in terms of
+      `foldRight`, you must build up, using `foldRight`, some value that you can
+      use to achieve the effect of `foldLeft`. (It won't be the `B` of the
+      return type necessarily)
+   */
+  def foldLeft2[A, B](l: List[A], z: B)(f: (B, A) => B): B =
+    foldRight(l, (b: B) => b)((a, g) => (b: B) => g(f(b, a)))(z)
 
+  // Exercise 3.13.b:
+  def foldRight2[A, B](l: List[A], z: B)(f: (A, B) => B): B =
+    foldLeft(reverse(l), z)((x, y) => f(y, x)) // reverse is built from foldLeft
+
+  // Exercise 3.14:
+  def append2[A](l1: List[A], l2: List[A]): List[A] =
+    foldRight(l1, l2)((x, y) => Cons(x, y))
+
+  def append3[A](l1: List[A], l2: List[A]): List[A] =
+    foldLeft(reverse(l1), l2)((x, y) => Cons(y, x))
+
+  // Exercise 3.15:
+  def concat[A](l: List[List[A]]): List[A] =
+    foldRight(l, Nil:List[A])((x, y) => append3(x, y))
+
+  // Exercise 3.16:
+  def addOne(l: List[Int]): List[Int] =
+    foldRight(l, Nil:List[Int])((a, b) => Cons(a+1, b))
+
+  /*
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
   */
 }
