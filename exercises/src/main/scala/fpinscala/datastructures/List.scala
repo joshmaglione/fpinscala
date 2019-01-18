@@ -175,7 +175,61 @@ object List { // `List` companion object. Contains functions for creating and wo
   def addOne(l: List[Int]): List[Int] =
     foldRight(l, Nil:List[Int])((a, b) => Cons(a+1, b))
 
-  /*
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
-  */
+  // Exercise 3.17:
+  def doublesToStrings(x: List[Double]): List[String] =
+    foldRight(x, Nil:List[String])((a, b) => Cons(a.toString, b))
+
+  // Exercise 3.18:
+  def map[A,B](l: List[A])(f: A => B): List[B] =
+    foldRight(l, Nil:List[B])((a, b) => Cons(f(a), b))
+
+  // Exercise 3.19:
+  def filter[A](as: List[A])(f: A => Boolean): List[A] =
+    foldRight(as, Nil:List[A])((a, b) => if (f(a)) Cons(a, b) else b)
+
+  // Exercise 3.20:
+  def flatMap[A, B](as: List[A])(f: A => List[B]): List[B] =
+    foldRight(as, Nil:List[B])((a, b) => append(f(a), b))
+
+  // Exercise 3.21: Seems like foldRight is more natural
+  def filter2[A](as: List[A])(f: A => Boolean): List[A] =
+    flatMap(as)(a => if (f(a)) List(a) else Nil:List[A])
+
+  // Exercise 3.22:
+  def pointwiseAdd(L1: List[Int], L2: List[Int]): List[Int] =
+    L1 match {
+      case Nil => Nil
+      case Cons(h1, t1) => L2 match {
+        case Nil => Nil
+        case Cons(h2, t2) => Cons(h1 + h2, pointwiseAdd(t1, t2))
+      }
+    }
+
+  // Exercise: 3.23:
+  def zipWith[A, B, C](L1: List[A], L2:List[B])(f: (A, B) => C): List[C] =
+    (L1, L2) match {
+      case (Nil, _) => Nil
+      case (_, Nil) => Nil
+      case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1, h2), zipWith(t1, t2)(f))
+    }
+
+  // Exercise 3.24:
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+    def recurse(X: List[A], Y: List[A]): Boolean =
+      (X, Y) match {
+        case (_, Nil) => true
+        case (Nil, _) => false
+        case (Cons(h1, t1), Cons(h2, t2)) => if (h1 == h2) recurse(t1, t2) else
+          false
+      }
+
+    (sup, sub) match {
+      case (_, Nil) => true
+      case (Nil, _) => false
+      case (Cons(h1, t1), Cons(h2, t2)) => {
+        if (recurse(Cons(h1, t1), Cons(h2, t2))) true
+        else hasSubsequence(t1, sub)
+      }
+    }
+  }
 }
